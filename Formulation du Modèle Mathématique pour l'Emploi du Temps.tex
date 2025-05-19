@@ -1,0 +1,173 @@
+\documentclass[11pt, a4paper]{article}
+
+% Including necessary packages for formatting and mathematics
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+
+% Setting page geometry for a clean layout
+\geometry{margin=1in}
+
+% Defining custom colors for a stylish look
+\definecolor{titleblue}{RGB}{0, 51, 102}
+\definecolor{headergray}{RGB}{80, 80, 80}
+
+% Customizing section titles
+\titleformat{\section}{\Large\bfseries\color{titleblue}}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries\color{titleblue}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{titleblue}}{\thesubsubsection}{1em}{}
+
+% Setting up the header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\color{headergray}Formulation du Modèle Mathématique}
+\fancyhead[R]{\color{headergray}Université de Yaoundé I}
+\fancyfoot[C]{\color{headergray}Page \thepage\ sur \pageref{LastPage}}
+
+% Defining theorem-like environments for definitions and constraints
+\theoremstyle{definition}
+\newtheorem{entite}{Entité}
+\newtheorem{contrainte}{Contrainte}
+\newtheorem{objectif}{Objectif}
+
+% Setting font to a clean, professional look
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\color{titleblue}\Huge\bfseries Formulation du Modèle Mathématique pour l'Emploi du Temps du Département d'Informatique\par}
+    \vspace{1.5cm}
+    {\Large\bfseries Université de Yaoundé I\par}
+    \vspace{1cm}
+    {\large\itshape Département d'Informatique\par}
+    \vspace{2cm}
+    {\normalsize Préparé pour le cours de planification automatique des emplois du temps\par}
+    \vspace{0.5cm}
+    {\normalsize 19 Mai 2025\par}
+    \vfill
+    {\large\itshape Document généré avec LaTeX pour une présentation claire et professionnelle\par}
+\end{titlepage}
+
+\section{Introduction}
+
+Ce document présente une formulation mathématique rigoureuse pour la génération automatique des emplois du temps pour le Département d'Informatique de l'Université de Yaoundé I. L'objectif est de concevoir un système qui respecte les contraintes spécifiées tout en optimisant l'utilisation des créneaux horaires matinaux. Les sections suivantes décrivent les entités, les variables de décision, les contraintes et l'objectif d'optimisation.
+
+\section{Formulation du Modèle Mathématique}
+
+\subsection{Entités du Modèle}
+
+\begin{entite}[Classes ($C$)]
+Les classes représentent les groupes d'étudiants, correspondant aux niveaux 1, 2 et 3 du département. Formellement, l'ensemble des classes est défini comme :
+\[
+C = \{C_1, C_2, C_3\},
+\]
+où \( C_1 \) représente le niveau 1, \( C_2 \) le niveau 2, et \( C_3 \) le niveau 3.
+\end{entite}
+
+\begin{entite}[Cours ($S_c$)]
+Pour chaque classe \( c \in C \), l'ensemble des cours \( S_c \) est défini comme l'ensemble des cours du programme de la classe, extraits des données du semestre 1 (fichier \texttt{subjects.json}). Par exemple, pour \( C_1 \), \( S_{C_1} = \{\text{INF111}, \text{INF121}, \dots \}\).
+\end{entite}
+
+\begin{entite}[Enseignants ($T$)]
+Chaque cours \( s \in S_c \) est associé à un enseignant \( t_s \), déterminé à partir du champ ``Course Lecturer'' dans les données. L'ensemble des enseignants est :
+\[
+T = \{ t \mid t \text{ est un enseignant assigné à un cours} \}.
+\]
+\end{entite}
+
+\begin{entite}[Salles de classe ($R$)]
+L'ensemble des salles disponibles est donné par le fichier \texttt{rooms.json}, avec \( M = 16 \) salles :
+\[
+R = \{ R_0, R_1, \dots, R_{15} \}.
+\]
+\end{entite}
+
+\begin{entite}[Créneaux horaires ($T$)]
+Les créneaux horaires sont définis par la combinaison des jours et des périodes :
+\begin{itemize}
+    \item \textbf{Jours} : \( D = \{ D_0, D_1, \dots, D_5 \} \) (6 jours, par exemple, lundi à samedi).
+    \item \textbf{Périodes} : \( P = \{ P_0, P_1, P_2, P_3, P_4 \} \), correspondant aux périodes horaires de 7h00-9h55, 10h05-12h55, 13h05-15h55, 16h05-18h55, et 19h05-21h55.
+\end{itemize}
+L'ensemble des créneaux horaires est donc :
+\[
+T = D \times P,
+\]
+soit 30 créneaux (6 jours \(\times\) 5 périodes).
+\end{entite}
+
+\begin{entite}[Poids des périodes ($w_p$)]
+Chaque période \( p \in P \) est associée à un poids \( w_p \), où :
+\[
+w_4 > w_3 > w_2 > w_1 > w_0 > 0.
+\]
+Nous définissons, par exemple, \( w_p = p + 1 \), soit \( w = [1, 2, 3, 4, 5] \), pour privilégier les périodes matinales.
+\end{entite}
+
+\subsection{Variables de Décision}
+
+Pour chaque classe \( c \in C \) et chaque cours \( s \in S_c \), nous définissons les variables suivantes :
+\begin{itemize}
+    \item \( day_{c,s} \in \{0, 1, \dots, 5\} \) : le jour où le cours \( s \) est programmé pour la classe \( c \).
+    \item \( period_{c,s} \in \{0, 1, 2, 3, 4\} \) : la période où le cours \( s \) est programmé.
+    \item \( room_{c,s} \in \{0, 1, \dots, 15\} \) : l'index de la salle où le cours \( s \) est programmé.
+\end{itemize}
+Chaque cours est ainsi assigné à un triplet \( (day_{c,s}, period_{c,s}, room_{c,s}) \).
+
+\subsection{Contraintes}
+
+\begin{contrainte}[Exclusivité des classes]
+Aucune classe ne peut être programmée pour plusieurs cours à différents endroits au même moment. Pour chaque classe \( c \in C \), jour \( d \in D \), et période \( p \in P \), au plus un cours peut être assigné :
+\[
+\sum_{s \in S_c} \mathbb{I}(day_{c,s} = d \land period_{c,s} = p) \leq 1,
+\]
+où \( \mathbb{I} \) est la fonction indicatrice (1 si vrai, 0 sinon).
+\end{contrainte}
+
+\begin{contrainte}[Planification des cours]
+Chaque cours \( s \in S_c \) doit être programmé exactement une fois par semaine. Cela est assuré par l'assignation d'un triplet \( (day_{c,s}, period_{c,s}, room_{c,s}) \) unique pour chaque cours.
+\end{contrainte}
+
+\begin{contrainte}[Conformité au programme]
+Seuls les cours du programme de la classe \( c \), c'est-à-dire \( s \in S_c \), sont programmés. Cela est implicitement garanti par la définition des variables uniquement pour les cours de \( S_c \).
+\end{contrainte}
+
+\begin{contrainte}[Exclusivité des enseignants]
+Aucun enseignant ne peut donner plusieurs cours au même moment. Pour chaque enseignant \( t \in T \), définissons \( S_t = \{(c, s) \mid t_s = t\} \) comme l'ensemble des cours enseignés par \( t \). Pour chaque jour \( d \in D \) et période \( p \in P \) :
+\[
+\sum_{(c,s) \in S_t} \mathbb{I}(day_{c,s} = d \land period_{c,s} = p) \leq 1.
+\]
+\end{contrainte}
+
+\begin{contrainte}[Exclusivité des salles]
+Aucune salle ne peut être réservée pour plusieurs cours au même moment. Pour chaque salle \( r \in R \), jour \( d \in D \), et période \( p \in P \) :
+\[
+\sum_{c \in C} \sum_{s \in S_c} \mathbb{I}(day_{c,s} = d \land period_{c,s} = p \land room_{c,s} = r) \leq 1.
+\]
+\end{contrainte}
+
+\subsection{Objectif d'Optimisation}
+
+\begin{objectif}[Maximisation des créneaux matinaux]
+Pour maximiser le nombre de cours programmés avant midi (périodes \( P_0 \) et \( P_1 \)), nous minimisons la somme des poids des périodes assignées :
+\[
+\text{Minimiser} \sum_{c \in C} \sum_{s \in S_c} w_{period_{c,s}},
+\]
+où \( w_{period_{c,s}} \) est le poids de la période assignée au cours \( s \) de la classe \( c \). Avec \( w_p = p + 1 \), les périodes matinales (faibles poids) sont privilégiées.
+\end{objectif}
+
+\section{Conclusion}
+
+Ce modèle mathématique fournit une base rigoureuse pour la génération automatique des emplois du temps. Il respecte les contraintes d'exclusivité des classes, des enseignants et des salles, tout en garantissant que chaque cours est programmé une fois par semaine conformément au programme. L'objectif d'optimisation assure une préférence pour les créneaux matinaux, rendant l'emploi du temps plus pratique pour les étudiants et les enseignants.
+
+\end{document}
