@@ -48,7 +48,7 @@ The system uses a constraint programming approach, leveraging data from `rooms.j
    ```
 2. Install dependencies:
    ```bash
-   pip install ortools
+   pip install ortools tabulate
    ```
 3. Place `rooms.json` and `subjects.json` in the project root.
 
